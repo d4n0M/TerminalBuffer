@@ -5,6 +5,5 @@ import org.example.model.*;
 
 public class Main {
     static void main() {
-
     }
 }
