@@ -140,5 +140,6 @@ public class TerminalLine {
      */
     public void setWidth(int width) {
         this.width = width;
+        this.cells.ensureCapacity(width);
     }
 }
