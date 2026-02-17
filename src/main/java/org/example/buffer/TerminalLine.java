@@ -121,7 +121,7 @@ public class TerminalLine {
      * @return The list of cells in the line.
      */
     public ArrayList<Cell> getCells() {
-        return cells;
+        return new ArrayList<>(cells);
     }
 
     /**
