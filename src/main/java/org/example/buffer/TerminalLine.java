@@ -126,6 +126,7 @@ public class TerminalLine {
      */
     public void setCells(ArrayList<Cell> cells) {
         this.cells = cells;
+        this.width = cells.size();
     }
 
     /**
