@@ -143,7 +143,14 @@ public class TerminalLine {
      * @param width The width to set.
      */
     public void setWidth(int width) {
+        if (width > this.cells.size()) {
+            this.cells.ensureCapacity(width);
+            while (this.cells.size() < width) {
+                this.cells.add(new Cell());
+            }
+        } else if (width < this.cells.size()) {
+            this.cells.subList(width, this.cells.size()).clear();
+        }
         this.width = width;
-        this.cells.ensureCapacity(width);
     }
 }
