@@ -26,7 +26,7 @@ public class Cell {
         this.character = character;
         this.foregroundColor = foregroundColor;
         this.backgroundColor = backgroundColor;
-        this.styleFlags = styleFlags;
+        this.styleFlags = new StyleFlags(styleFlags);
     }
 
     /**
@@ -138,6 +138,6 @@ public class Cell {
      * @param styleFlags The style flags to set.
      */
     public void setStyleFlags(StyleFlags styleFlags) {
-        this.styleFlags = styleFlags;
+        this.styleFlags = new StyleFlags(styleFlags);
     }
 }
