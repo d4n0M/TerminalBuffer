@@ -8,7 +8,7 @@ public class CellAttributes {
     public CellAttributes(Color foregroundColor, Color backgroundColor, StyleFlags style){
         this.foregroundColor = foregroundColor;
         this.backgroundColor = backgroundColor;
-        this.style = style;
+        this.style = new StyleFlags(style);
     }
 
     public CellAttributes(){
