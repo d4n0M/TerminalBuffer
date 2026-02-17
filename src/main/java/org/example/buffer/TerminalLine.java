@@ -74,9 +74,11 @@ public class TerminalLine {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("TerminalLine{width=").append(width).append(", cells=[\n");
         for (Cell cell : cells) {
             sb.append(cell.getCharacter());
         }
+        sb.append("\n]}");
         return sb.toString();
     }
 
@@ -86,13 +88,14 @@ public class TerminalLine {
      */
     public String toStringWithAttributes() {
         StringBuilder sb = new StringBuilder();
-        for (Cell cell : cells) {
-            String tmp = "TerminalLine{" +
-                    "cells=" + cell.toString() +
-                    ", width=" + width +
-                    '}';
-            sb.append(tmp);
+        sb.append("TerminalLine{width=").append(width).append(", cells=[\n");
+        for (int i = 0; i < cells.size(); i++) {
+            sb.append(cells.get(i).toString());
+            if (i < cells.size() - 1) {
+                sb.append(", ");
+            }
         }
+        sb.append("\n]}");
         return sb.toString();
     }
 
