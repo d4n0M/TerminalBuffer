@@ -14,7 +14,7 @@ public class StyleFlags{
     /**
      * Creates a new set of style flags with all styles disabled.
      */
-    StyleFlags(){
+    public StyleFlags(){
         this.bold = false;
         this.italic = false;
         this.underline = false;
@@ -24,7 +24,7 @@ public class StyleFlags{
      * Creates a new set of style flags by copying another set.
      * @param styleFlags The style flags to copy.
      */
-    StyleFlags(StyleFlags styleFlags){
+    public StyleFlags(StyleFlags styleFlags){
         this.bold = styleFlags.bold;
         this.italic = styleFlags.italic;
         this.underline = styleFlags.underline;
@@ -36,7 +36,7 @@ public class StyleFlags{
      * @param italic Whether the text is italic.
      * @param underline Whether the text is underlined.
      */
-    StyleFlags(boolean bold, boolean italic, boolean underline){
+    public StyleFlags(boolean bold, boolean italic, boolean underline){
         this.bold = bold;
         this.italic = italic;
         this.underline = underline;
