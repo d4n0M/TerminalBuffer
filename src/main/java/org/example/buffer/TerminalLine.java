@@ -112,7 +112,7 @@ public class TerminalLine {
             newCell.setCharacter(oldCell.getCharacter());
             newCell.setForegroundColor(oldCell.getForegroundColor());
             newCell.setBackgroundColor(oldCell.getBackgroundColor());
-            newCell.setStyleFlags(new StyleFlags(oldCell.getStyleFlags()));
+            newCell.setStyle(new StyleFlags(oldCell.getStyle()));
         }
         return newLine;
     }
