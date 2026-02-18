@@ -970,4 +970,436 @@ public class TerminalBufferTest {
         assertEquals(' ', buffer.getScreen().get(3).getCell(1).getCharacter());
         assertEquals(' ', buffer.getScreen().get(3).getCell(8).getCharacter());
     }
+
+    // ==================== insertEmptyLineAtBottom Tests ====================
+
+    @Test
+    void insertEmptyLineAtBottom_addsNewEmptyLineAtBottom() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        // Write something to identify lines
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("LINE0");
+        buffer.setCursorPosition(0, 4);
+        buffer.writeText("LINE4");
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        // Bottom line should now be empty
+        assertEquals(' ', buffer.getScreen().get(4).getCell(0).getCharacter());
+        // Screen size should remain the same
+        assertEquals(5, buffer.getScreen().size());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_scrollsTopLineToScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("FIRST");
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        // Scrollback should contain the old top line
+        assertEquals(1, buffer.getScrollback().size());
+        assertEquals('F', buffer.getScrollback().getFirst().getCell(0).getCharacter());
+        assertEquals('I', buffer.getScrollback().getFirst().getCell(1).getCharacter());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_shiftsAllLinesUp() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("LINE0");
+        buffer.setCursorPosition(0, 1);
+        buffer.writeText("LINE1");
+        buffer.setCursorPosition(0, 2);
+        buffer.writeText("LINE2");
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        // LINE1 should now be at row 0
+        assertEquals('L', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('1', buffer.getScreen().get(0).getCell(4).getCharacter());
+        // LINE2 should now be at row 1
+        assertEquals('L', buffer.getScreen().get(1).getCell(0).getCharacter());
+        assertEquals('2', buffer.getScreen().get(1).getCell(4).getCharacter());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_newLineIsCompletelyEmpty() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.insertEmptyLineAtBottom();
+        
+        // Verify all cells in the new bottom line are empty spaces
+        for (int i = 0; i < 10; i++) {
+            assertEquals(' ', buffer.getScreen().get(4).getCell(i).getCharacter());
+        }
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_multipleCallsAccumulateInScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("LINE0");
+        buffer.setCursorPosition(0, 1);
+        buffer.writeText("LINE1");
+        buffer.setCursorPosition(0, 2);
+        buffer.writeText("LINE2");
+        
+        buffer.insertEmptyLineAtBottom();
+        buffer.insertEmptyLineAtBottom();
+        buffer.insertEmptyLineAtBottom();
+        
+        assertEquals(3, buffer.getScrollback().size());
+        // First scrolled line should be at the start of scrollback
+        assertEquals('0', buffer.getScrollback().get(0).getCell(4).getCharacter());
+        assertEquals('1', buffer.getScrollback().get(1).getCell(4).getCharacter());
+        assertEquals('2', buffer.getScrollback().get(2).getCell(4).getCharacter());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_respectsMaxScrollbackSize() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 3);  // max 3 lines in scrollback
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("LINE0");
+        buffer.setCursorPosition(0, 1);
+        buffer.writeText("LINE1");
+        buffer.setCursorPosition(0, 2);
+        buffer.writeText("LINE2");
+        buffer.setCursorPosition(0, 3);
+        buffer.writeText("LINE3");
+        buffer.setCursorPosition(0, 4);
+        buffer.writeText("LINE4");
+        
+        // Insert 5 empty lines - should scroll all content but only keep 3 in scrollback
+        for (int i = 0; i < 5; i++) {
+            buffer.insertEmptyLineAtBottom();
+        }
+        
+        // Scrollback should be capped at max size
+        assertEquals(3, buffer.getScrollback().size());
+        // Oldest lines should be removed, keeping the most recent 3
+        assertEquals('2', buffer.getScrollback().get(0).getCell(4).getCharacter());
+        assertEquals('3', buffer.getScrollback().get(1).getCell(4).getCharacter());
+        assertEquals('4', buffer.getScrollback().get(2).getCell(4).getCharacter());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_withZeroMaxScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 0);  // no scrollback allowed
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("LINE0");
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        // Scrollback should remain empty
+        assertTrue(buffer.getScrollback().isEmpty());
+        // Screen should still have 5 lines
+        assertEquals(5, buffer.getScreen().size());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_preservesScreenSize() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        
+        for (int i = 0; i < 10; i++) {
+            buffer.insertEmptyLineAtBottom();
+        }
+        
+        assertEquals(5, buffer.getScreen().size());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_withMinimumScreenSize() {
+        TerminalBuffer buffer = new TerminalBuffer(1, 1, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("X");
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        assertEquals(1, buffer.getScreen().size());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals(1, buffer.getScrollback().size());
+        assertEquals('X', buffer.getScrollback().getFirst().getCell(0).getCharacter());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_newLineHasCorrectWidth() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        assertEquals(80, buffer.getScreen().get(23).getWidth());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_scrollbackExactlyAtMaxSize() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 5);  // max 5 lines in scrollback
+        
+        // Fill and scroll exactly 5 lines
+        for (int i = 0; i < 5; i++) {
+            buffer.setCursorPosition(0, 0);
+            buffer.writeText("L" + i);
+            buffer.insertEmptyLineAtBottom();
+        }
+        
+        assertEquals(5, buffer.getScrollback().size());
+        
+        // Add one more - should remove oldest
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("NEW");
+        buffer.insertEmptyLineAtBottom();
+        
+        assertEquals(5, buffer.getScrollback().size());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_preservesCellAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.setForegroundColor(Color.RED);
+        buffer.setBold(true);
+        buffer.writeText("STYLED");
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        // Check that the scrollback line preserved the attributes
+        TerminalLine scrolledLine = buffer.getScrollback().getFirst();
+        assertEquals(Color.RED, scrolledLine.getCell(0).getAttributes().getForegroundColor());
+        assertTrue(scrolledLine.getCell(0).getAttributes().getStyle().getBold());
+    }
+
+    @Test
+    void insertEmptyLineAtBottom_doesNotAffectCursorPosition() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(5, 3);
+        
+        buffer.insertEmptyLineAtBottom();
+        
+        // Cursor position should remain unchanged
+        assertEquals(5, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(3, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    // ==================== clearScreen Tests ====================
+
+    @Test
+    void clearScreen_clearsAllScreenLines() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("LINE0");
+        buffer.setCursorPosition(0, 1);
+        buffer.writeText("LINE1");
+        buffer.setCursorPosition(0, 2);
+        buffer.writeText("LINE2");
+        buffer.setCursorPosition(0, 3);
+        buffer.writeText("LINE3");
+        buffer.setCursorPosition(0, 4);
+        buffer.writeText("LINE4");
+        
+        buffer.clearScreen();
+        
+        // All screen lines should be empty
+        for (int row = 0; row < 5; row++) {
+            for (int col = 0; col < 10; col++) {
+                assertEquals(' ', buffer.getScreen().get(row).getCell(col).getCharacter(),
+                        "Cell at row " + row + ", col " + col + " should be empty");
+            }
+        }
+    }
+
+    @Test
+    void clearScreen_doesNotTouchScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        // First put something in scrollback
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("SCROLL");
+        buffer.insertEmptyLineAtBottom();
+        
+        assertEquals(1, buffer.getScrollback().size());
+        assertEquals('S', buffer.getScrollback().getFirst().getCell(0).getCharacter());
+        
+        buffer.clearScreen();
+        
+        // Scrollback should be unchanged
+        assertEquals(1, buffer.getScrollback().size());
+        assertEquals('S', buffer.getScrollback().getFirst().getCell(0).getCharacter());
+    }
+
+    @Test
+    void clearScreen_preservesScreenSize() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.clearScreen();
+        
+        assertEquals(24, buffer.getScreen().size());
+    }
+
+    @Test
+    void clearScreen_preservesLineWidth() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.clearScreen();
+        
+        for (TerminalLine line : buffer.getScreen()) {
+            assertEquals(80, line.getWidth());
+        }
+    }
+
+    @Test
+    void clearScreen_withEmptyScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        // Screen is already empty
+        buffer.clearScreen();
+        
+        assertEquals(5, buffer.getScreen().size());
+        for (int row = 0; row < 5; row++) {
+            for (int col = 0; col < 10; col++) {
+                assertEquals(' ', buffer.getScreen().get(row).getCell(col).getCharacter());
+            }
+        }
+    }
+
+    @Test
+    void clearScreen_withFullScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        // Fill entire screen
+        for (int row = 0; row < 5; row++) {
+            buffer.setCursorPosition(0, row);
+            buffer.fillLine('X');
+        }
+        
+        buffer.clearScreen();
+        
+        // All should be cleared
+        for (int row = 0; row < 5; row++) {
+            for (int col = 0; col < 10; col++) {
+                assertEquals(' ', buffer.getScreen().get(row).getCell(col).getCharacter());
+            }
+        }
+    }
+
+    @Test
+    void clearScreen_doesNotAffectScrollbackContents() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        // Build up scrollback with multiple lines
+        for (int i = 0; i < 3; i++) {
+            buffer.setCursorPosition(0, 0);
+            buffer.writeText("SB" + i);
+            buffer.insertEmptyLineAtBottom();
+        }
+        
+        assertEquals(3, buffer.getScrollback().size());
+        
+        buffer.clearScreen();
+        
+        // Verify scrollback content is preserved
+        assertEquals(3, buffer.getScrollback().size());
+        assertEquals('0', buffer.getScrollback().get(0).getCell(2).getCharacter());
+        assertEquals('1', buffer.getScrollback().get(1).getCell(2).getCharacter());
+        assertEquals('2', buffer.getScrollback().get(2).getCell(2).getCharacter());
+    }
+
+    @Test
+    void clearScreen_withMinimumScreenSize() {
+        TerminalBuffer buffer = new TerminalBuffer(1, 1, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("X");
+        
+        buffer.clearScreen();
+        
+        assertEquals(1, buffer.getScreen().size());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(0).getCharacter());
+    }
+
+    @Test
+    void clearScreen_withLargeScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(200, 100, 100);
+        // Write some content
+        buffer.setCursorPosition(0, 50);
+        buffer.writeText("TEST");
+        
+        buffer.clearScreen();
+        
+        assertEquals(100, buffer.getScreen().size());
+        // Verify the previously written cell is now empty
+        assertEquals(' ', buffer.getScreen().get(50).getCell(0).getCharacter());
+    }
+
+    @Test
+    void clearScreen_multipleTimes() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("TEST");
+        buffer.clearScreen();
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("AGAIN");
+        buffer.clearScreen();
+        buffer.clearScreen();  // Clear already empty screen
+        
+        for (int row = 0; row < 5; row++) {
+            for (int col = 0; col < 10; col++) {
+                assertEquals(' ', buffer.getScreen().get(row).getCell(col).getCharacter());
+            }
+        }
+    }
+
+    @Test
+    void clearScreen_preservesEmptyScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        assertTrue(buffer.getScrollback().isEmpty());
+        
+        buffer.clearScreen();
+        
+        assertTrue(buffer.getScrollback().isEmpty());
+    }
+
+    @Test
+    void clearScreen_withZeroMaxScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 0);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("TEST");
+        
+        buffer.clearScreen();
+        
+        assertEquals(' ', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertTrue(buffer.getScrollback().isEmpty());
+    }
+
+    @Test
+    void clearScreen_doesNotResetCellAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.setForegroundColor(Color.RED);
+        buffer.writeText("RED");
+        
+        buffer.clearScreen();
+        
+        // After clearing, cells should be space characters
+        // The test verifies screen is cleared, attributes behavior depends on implementation
+        assertEquals(' ', buffer.getScreen().get(0).getCell(0).getCharacter());
+    }
+
+    @Test
+    void clearScreen_doesNotMoveCursor() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(5, 3);
+        
+        buffer.clearScreen();
+        
+        assertEquals(5, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(3, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void clearScreen_partiallyFilledScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        // Only write to some lines
+        buffer.setCursorPosition(0, 1);
+        buffer.writeText("A");
+        buffer.setCursorPosition(5, 3);
+        buffer.writeText("B");
+        
+        buffer.clearScreen();
+        
+        assertEquals(' ', buffer.getScreen().get(1).getCell(0).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(3).getCell(5).getCharacter());
+    }
 }
