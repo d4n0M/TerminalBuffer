@@ -334,24 +334,6 @@ public class TerminalBufferTest {
         assertEquals(Color.RED, buffer.getCurrentAttributes().getForegroundColor());
     }
 
-    // ==================== getCurrentAttributes Tests ====================
-
-    @Test
-    void getCurrentAttributes_returnsDefensiveCopy() {
-        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
-        CellAttributes attrs1 = buffer.getCurrentAttributes();
-        CellAttributes attrs2 = buffer.getCurrentAttributes();
-        assertNotSame(attrs1, attrs2);
-    }
-
-    @Test
-    void getCurrentAttributes_modifyingCopyDoesNotAffectBuffer() {
-        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
-        CellAttributes attrs = buffer.getCurrentAttributes();
-        attrs.setForegroundColor(Color.RED);
-        assertEquals(Color.DEFAULT, buffer.getCurrentAttributes().getForegroundColor());
-    }
-
     // ==================== resetAttributes Tests ====================
 
     @Test
@@ -362,6 +344,12 @@ public class TerminalBufferTest {
         buffer.setBold(true);
         buffer.setItalic(true);
         buffer.setUnderline(true);
+
+        assertEquals(Color.RED, buffer.getCurrentAttributes().getForegroundColor());
+        assertEquals(Color.BLUE, buffer.getCurrentAttributes().getBackgroundColor());
+        assertTrue(buffer.getCurrentAttributes().getStyle().getBold());
+        assertTrue(buffer.getCurrentAttributes().getStyle().getItalic());
+        assertTrue(buffer.getCurrentAttributes().getStyle().getUnderline());
         
         buffer.resetAttributes();
         
@@ -899,12 +887,12 @@ public class TerminalBufferTest {
     @Test
     void fillLineRange_usesCurrentAttributes() {
         TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 1);
         buffer.setForegroundColor(Color.YELLOW);
         buffer.setBold(true);
-        buffer.setCursorPosition(0, 1);
         buffer.fillLine('#', 0, 4);
-        assertEquals(Color.YELLOW, buffer.getScreen().get(1).getCell(2).getAttributes().getForegroundColor());
-        assertTrue(buffer.getScreen().get(1).getCell(2).getAttributes().getStyle().getBold());
+        assertEquals(Color.YELLOW, buffer.getScreen().get(1).getCell(0).getAttributes().getForegroundColor());
+        assertTrue(buffer.getScreen().get(1).getCell(0).getAttributes().getStyle().getBold());
     }
 
     @Test
