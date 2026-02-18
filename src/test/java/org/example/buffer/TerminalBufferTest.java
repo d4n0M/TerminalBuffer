@@ -602,4 +602,386 @@ public class TerminalBufferTest {
         buffer.moveCursorRight(5);
         assertEquals(79, buffer.getCurrentCursorPosition().getColumn());
     }
+
+    // ==================== writeText Tests ====================
+
+    @Test
+    void writeText_writesTextAtCursorPosition() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("Hello");
+        assertEquals('H', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('e', buffer.getScreen().get(0).getCell(1).getCharacter());
+        assertEquals('l', buffer.getScreen().get(0).getCell(2).getCharacter());
+        assertEquals('l', buffer.getScreen().get(0).getCell(3).getCharacter());
+        assertEquals('o', buffer.getScreen().get(0).getCell(4).getCharacter());
+    }
+
+    @Test
+    void writeText_overridesExistingContent() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("XXXXX");
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("Hi");
+        assertEquals('H', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('i', buffer.getScreen().get(0).getCell(1).getCharacter());
+        assertEquals('X', buffer.getScreen().get(0).getCell(2).getCharacter());
+    }
+
+    @Test
+    void writeText_appliesCurrentAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setForegroundColor(Color.RED);
+        buffer.setBold(true);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("A");
+        assertEquals(Color.RED, buffer.getScreen().get(0).getCell(0).getAttributes().getForegroundColor());
+        assertTrue(buffer.getScreen().get(0).getCell(0).getAttributes().getStyle().getBold());
+    }
+
+    @Test
+    void writeText_movesCursorRightByTextLength() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("Hello");
+        assertEquals(5, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(0, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void writeText_stopsAtEndOfLine() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(7, 0);
+        buffer.writeText("Hello");
+        // Should only write "Hel" (columns 7, 8, 9) and cursor stops at end
+        assertEquals('H', buffer.getScreen().get(0).getCell(7).getCharacter());
+        assertEquals('e', buffer.getScreen().get(0).getCell(8).getCharacter());
+        assertEquals('l', buffer.getScreen().get(0).getCell(9).getCharacter());
+        assertEquals(9, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void writeText_emptyStringDoesNothing() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(5, 5);
+        buffer.writeText("");
+        assertEquals(5, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(5, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void writeText_nullThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.writeText(null));
+    }
+
+    @Test
+    void writeText_writesInMiddleOfLine() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 5);
+        buffer.writeText("Test");
+        assertEquals('T', buffer.getScreen().get(5).getCell(10).getCharacter());
+        assertEquals(14, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void writeText_singleCharacter() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("X");
+        assertEquals('X', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals(1, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void writeText_fillsEntireLine() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 3, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("ABCDE");
+        assertEquals('A', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('E', buffer.getScreen().get(0).getCell(4).getCharacter());
+        assertEquals(4, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    // ==================== insertText Tests ====================
+
+    @Test
+    void insertText_insertsTextAtCursorPosition() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("World");
+        buffer.setCursorPosition(0, 0);
+        buffer.insertText("Hello ");
+        assertEquals('H', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('o', buffer.getScreen().get(0).getCell(4).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(5).getCharacter());
+        assertEquals('W', buffer.getScreen().get(0).getCell(6).getCharacter());
+    }
+
+    @Test
+    void insertText_shiftsExistingContentRight() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("ABC");
+        buffer.setCursorPosition(1, 0);
+        buffer.insertText("X");
+        assertEquals('A', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('X', buffer.getScreen().get(0).getCell(1).getCharacter());
+        assertEquals('B', buffer.getScreen().get(0).getCell(2).getCharacter());
+        assertEquals('C', buffer.getScreen().get(0).getCell(3).getCharacter());
+    }
+
+    @Test
+    void insertText_appliesCurrentAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setForegroundColor(Color.GREEN);
+        buffer.setItalic(true);
+        buffer.setCursorPosition(0, 0);
+        buffer.insertText("A");
+        assertEquals(Color.GREEN, buffer.getScreen().get(0).getCell(0).getAttributes().getForegroundColor());
+        assertTrue(buffer.getScreen().get(0).getCell(0).getAttributes().getStyle().getItalic());
+    }
+
+    @Test
+    void insertText_movesCursorRightByTextLength() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.insertText("Hello");
+        assertEquals(5, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void insertText_contentPushedOffLineIsLost() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("ABCDEFGHIJ");  // fills entire line
+        buffer.setCursorPosition(0, 0);
+        buffer.insertText("XX");
+        // "XX" inserted, "AB..HI" shifted, "J" pushed off
+        assertEquals('X', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('X', buffer.getScreen().get(0).getCell(1).getCharacter());
+        assertEquals('A', buffer.getScreen().get(0).getCell(2).getCharacter());
+        assertEquals('H', buffer.getScreen().get(0).getCell(9).getCharacter());
+    }
+
+    @Test
+    void insertText_emptyStringDoesNothing() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(5, 5);
+        buffer.insertText("");
+        assertEquals(5, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void insertText_nullThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.insertText(null));
+    }
+
+    @Test
+    void insertText_insertsInMiddleOfLine() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("AC");
+        buffer.setCursorPosition(1, 0);
+        buffer.insertText("B");
+        assertEquals('A', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('B', buffer.getScreen().get(0).getCell(1).getCharacter());
+        assertEquals('C', buffer.getScreen().get(0).getCell(2).getCharacter());
+    }
+
+    @Test
+    void insertText_singleCharacter() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.insertText("X");
+        assertEquals('X', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals(1, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void insertText_atEndOfLine() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(9, 0);
+        buffer.insertText("X");
+        assertEquals('X', buffer.getScreen().get(0).getCell(9).getCharacter());
+    }
+
+    // ==================== fillLine(char c) Tests ====================
+
+    @Test
+    void fillLine_fillsEntireLineWithCharacter() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(5, 2);
+        buffer.fillLine('X');
+        for (int i = 0; i < 10; i++) {
+            assertEquals('X', buffer.getScreen().get(2).getCell(i).getCharacter());
+        }
+    }
+
+    @Test
+    void fillLine_usesCurrentAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setForegroundColor(Color.BLUE);
+        buffer.setUnderline(true);
+        buffer.setCursorPosition(0, 1);
+        buffer.fillLine('-');
+        assertEquals(Color.BLUE, buffer.getScreen().get(1).getCell(0).getAttributes().getForegroundColor());
+        assertTrue(buffer.getScreen().get(1).getCell(0).getAttributes().getStyle().getUnderline());
+    }
+
+    @Test
+    void fillLine_doesNotMoveCursor() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(3, 2);
+        buffer.fillLine('X');
+        assertEquals(3, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(2, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void fillLine_fillsCurrentRowOnly() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 2);
+        buffer.fillLine('X');
+        // Row 2 should be filled
+        assertEquals('X', buffer.getScreen().get(2).getCell(0).getCharacter());
+        // Other rows should still be spaces
+        assertEquals(' ', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(1).getCell(0).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(3).getCell(0).getCharacter());
+    }
+
+    @Test
+    void fillLine_withSpaceCharacter() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("XXXXXXXXXX");
+        buffer.fillLine(' ');
+        for (int i = 0; i < 10; i++) {
+            assertEquals(' ', buffer.getScreen().get(0).getCell(i).getCharacter());
+        }
+    }
+
+    @Test
+    void fillLine_onFirstRow() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(5, 0);
+        buffer.fillLine('A');
+        assertEquals('A', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals('A', buffer.getScreen().get(0).getCell(9).getCharacter());
+    }
+
+    @Test
+    void fillLine_onLastRow() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(5, 4);
+        buffer.fillLine('Z');
+        assertEquals('Z', buffer.getScreen().get(4).getCell(0).getCharacter());
+        assertEquals('Z', buffer.getScreen().get(4).getCell(9).getCharacter());
+    }
+
+    // ==================== fillLine(char c, int fromColumn, int toColumn) Tests ====================
+
+    @Test
+    void fillLineRange_fillsPortionOfLine() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.fillLine('X', 2, 5);
+        assertEquals(' ', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(1).getCharacter());
+        assertEquals('X', buffer.getScreen().get(0).getCell(2).getCharacter());
+        assertEquals('X', buffer.getScreen().get(0).getCell(3).getCharacter());
+        assertEquals('X', buffer.getScreen().get(0).getCell(4).getCharacter());
+        assertEquals('X', buffer.getScreen().get(0).getCell(5).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(6).getCharacter());
+    }
+
+    @Test
+    void fillLineRange_usesCurrentAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setForegroundColor(Color.YELLOW);
+        buffer.setBold(true);
+        buffer.setCursorPosition(0, 1);
+        buffer.fillLine('#', 0, 4);
+        assertEquals(Color.YELLOW, buffer.getScreen().get(1).getCell(2).getAttributes().getForegroundColor());
+        assertTrue(buffer.getScreen().get(1).getCell(2).getAttributes().getStyle().getBold());
+    }
+
+    @Test
+    void fillLineRange_doesNotMoveCursor() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(3, 2);
+        buffer.fillLine('X', 0, 9);
+        assertEquals(3, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(2, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void fillLineRange_fromColumnEqualsToColumn() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.fillLine('X', 5, 5);
+        assertEquals('X', buffer.getScreen().get(0).getCell(5).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(4).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(6).getCharacter());
+    }
+
+    @Test
+    void fillLineRange_entireLine() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.fillLine('Y', 0, 9);
+        for (int i = 0; i < 10; i++) {
+            assertEquals('Y', buffer.getScreen().get(0).getCell(i).getCharacter());
+        }
+    }
+
+    @Test
+    void fillLineRange_invalidFromColumnThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.fillLine('X', -1, 5));
+    }
+
+    @Test
+    void fillLineRange_invalidToColumnThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.fillLine('X', 0, 10));
+    }
+
+    @Test
+    void fillLineRange_fromColumnGreaterThanToColumnThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.fillLine('X', 7, 3));
+    }
+
+    @Test
+    void fillLineRange_fillsFirstColumn() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(5, 0);
+        buffer.fillLine('A', 0, 0);
+        assertEquals('A', buffer.getScreen().get(0).getCell(0).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(0).getCell(1).getCharacter());
+    }
+
+    @Test
+    void fillLineRange_fillsLastColumn() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.fillLine('Z', 9, 9);
+        assertEquals(' ', buffer.getScreen().get(0).getCell(8).getCharacter());
+        assertEquals('Z', buffer.getScreen().get(0).getCell(9).getCharacter());
+    }
+
+    @Test
+    void fillLineRange_onDifferentRow() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 3);
+        buffer.fillLine('M', 2, 7);
+        assertEquals('M', buffer.getScreen().get(3).getCell(2).getCharacter());
+        assertEquals('M', buffer.getScreen().get(3).getCell(7).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(3).getCell(1).getCharacter());
+        assertEquals(' ', buffer.getScreen().get(3).getCell(8).getCharacter());
+    }
 }
