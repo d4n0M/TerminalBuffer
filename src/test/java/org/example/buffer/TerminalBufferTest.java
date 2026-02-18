@@ -1,8 +1,6 @@
 package org.example.buffer;
 
-import org.example.model.CellAttributes;
-import org.example.model.Color;
-import org.example.model.CursorPosition;
+import org.example.model.*;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -823,9 +821,9 @@ public class TerminalBufferTest {
     @Test
     void fillLine_usesCurrentAttributes() {
         TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
-        buffer.setForegroundColor(Color.BLUE);
-        buffer.setUnderline(true);
-        buffer.setCursorPosition(0, 1);
+        CellAttributes attrs = new CellAttributes(Color.BLUE, Color.WHITE, new StyleFlags(false, false, true));
+        buffer.setCursorPosition(0,1);
+        buffer.applyToCurrentCell(attrs);
         buffer.fillLine('-');
         assertEquals(Color.BLUE, buffer.getScreen().get(1).getCell(0).getAttributes().getForegroundColor());
         assertTrue(buffer.getScreen().get(1).getCell(0).getAttributes().getStyle().getUnderline());
