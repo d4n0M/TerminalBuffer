@@ -383,4 +383,223 @@ public class TerminalBufferTest {
         buffer.setForegroundColor(Color.GREEN);
         assertEquals(Color.GREEN, buffer.getCurrentAttributes().getForegroundColor());
     }
+
+    // ==================== getCurrentCursorPosition Tests ====================
+
+    @Test
+    void getCursorPosition_returnsDefensiveCopy() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        CursorPosition pos1 = buffer.getCurrentCursorPosition();
+        CursorPosition pos2 = buffer.getCurrentCursorPosition();
+        assertNotSame(pos1, pos2);
+    }
+
+    @Test
+    void getCursorPosition_modifyingCopyDoesNotAffectBuffer() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        CursorPosition pos = buffer.getCurrentCursorPosition();
+        pos.setColumn(50);
+        pos.setRow(10);
+        assertEquals(0, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(0, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void getCursorPosition_initialPositionIsZeroZero() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        CursorPosition pos = buffer.getCurrentCursorPosition();
+        assertEquals(0, pos.getColumn());
+        assertEquals(0, pos.getRow());
+    }
+
+    // ==================== setCursorPosition Tests ====================
+
+    @Test
+    void setCursorPosition_setsValidPosition() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 5);
+        assertEquals(10, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(5, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void setCursorPosition_atOrigin() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 5);
+        buffer.setCursorPosition(0, 0);
+        assertEquals(0, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(0, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void setCursorPosition_atMaxBounds() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(79, 23);
+        assertEquals(79, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(23, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void setCursorPosition_negativeColumnThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.setCursorPosition(-1, 0));
+    }
+
+    @Test
+    void setCursorPosition_negativeRowThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.setCursorPosition(0, -1));
+    }
+
+    @Test
+    void setCursorPosition_columnOutOfBoundsThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.setCursorPosition(80, 0));
+    }
+
+    @Test
+    void setCursorPosition_rowOutOfBoundsThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.setCursorPosition(0, 24));
+    }
+
+    // ==================== moveCursorUp Tests ====================
+
+    @Test
+    void moveCursorUp_movesUpByN() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorUp(3);
+        assertEquals(10, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(7, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorUp_clampsToTopBound() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 5);
+        buffer.moveCursorUp(10);
+        assertEquals(0, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorUp_zeroDoesNotMove() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorUp(0);
+        assertEquals(10, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorUp_fromTopRowStaysAtTop() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 0);
+        buffer.moveCursorUp(5);
+        assertEquals(0, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    // ==================== moveCursorDown Tests ====================
+
+    @Test
+    void moveCursorDown_movesDownByN() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorDown(3);
+        assertEquals(10, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(13, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorDown_clampsToBottomBound() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 20);
+        buffer.moveCursorDown(10);
+        assertEquals(23, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorDown_zeroDoesNotMove() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorDown(0);
+        assertEquals(10, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorDown_fromBottomRowStaysAtBottom() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 23);
+        buffer.moveCursorDown(5);
+        assertEquals(23, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    // ==================== moveCursorLeft Tests ====================
+
+    @Test
+    void moveCursorLeft_movesLeftByN() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorLeft(3);
+        assertEquals(7, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(10, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorLeft_clampsToLeftBound() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(5, 10);
+        buffer.moveCursorLeft(10);
+        assertEquals(0, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void moveCursorLeft_zeroDoesNotMove() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorLeft(0);
+        assertEquals(10, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void moveCursorLeft_fromLeftColumnStaysAtLeft() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(0, 10);
+        buffer.moveCursorLeft(5);
+        assertEquals(0, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    // ==================== moveCursorRight Tests ====================
+
+    @Test
+    void moveCursorRight_movesRightByN() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorRight(3);
+        assertEquals(13, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(10, buffer.getCurrentCursorPosition().getRow());
+    }
+
+    @Test
+    void moveCursorRight_clampsToRightBound() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(75, 10);
+        buffer.moveCursorRight(10);
+        assertEquals(79, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void moveCursorRight_zeroDoesNotMove() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(10, 10);
+        buffer.moveCursorRight(0);
+        assertEquals(10, buffer.getCurrentCursorPosition().getColumn());
+    }
+
+    @Test
+    void moveCursorRight_fromRightColumnStaysAtRight() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setCursorPosition(79, 10);
+        buffer.moveCursorRight(5);
+        assertEquals(79, buffer.getCurrentCursorPosition().getColumn());
+    }
 }
