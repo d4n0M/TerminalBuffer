@@ -8,12 +8,18 @@ import java.util.Objects;
 public class Cell {
     /** The character stored in the cell. */
     private char character;
-    /** The foreground color of the character. */
-    private Color foregroundColor;
-    /** The background color of the cell. */
-    private Color backgroundColor;
-    /** The style flags (bold, italic, underline) applied to the cell. */
-    private StyleFlags styleFlags;
+    /** The cell attributes (colors and styles). */
+    private CellAttributes attributes;
+
+    /**
+     * Creates a new cell with specified character and attributes.
+     * @param character The character to display.
+     * @param attributes The cell attributes (colors and styles).
+     */
+    public Cell(char character, CellAttributes attributes) {
+        this.character = character;
+        this.attributes = new CellAttributes(attributes);
+    }
 
     /**
      * Creates a new cell with specified character, colors, and style flags.
@@ -22,66 +28,58 @@ public class Cell {
      * @param backgroundColor The background color.
      * @param styleFlags The style flags.
      */
-    public Cell(char character, Color foregroundColor, Color backgroundColor, StyleFlags styleFlags){
+    public Cell(char character, Color foregroundColor, Color backgroundColor, StyleFlags styleFlags) {
         this.character = character;
-        this.foregroundColor = foregroundColor;
-        this.backgroundColor = backgroundColor;
-        this.styleFlags = new StyleFlags(styleFlags);
+        this.attributes = new CellAttributes(foregroundColor, backgroundColor, styleFlags);
     }
 
     /**
      * Creates a default empty cell with a space character and default colors.
      */
-    public Cell(){
-        this(' ', Color.DEFAULT, Color.DEFAULT, new StyleFlags());
+    public Cell() {
+        this(' ', new CellAttributes());
     }
 
     /**
      * Creates a new cell by copying another cell.
      * @param cell The cell to copy.
      */
-    public Cell(Cell cell){
-        this(cell.character, cell.foregroundColor, cell.backgroundColor, cell.styleFlags);
+    public Cell(Cell cell) {
+        this(cell.character, cell.attributes);
     }
 
     /**
      * @return true if the cell contains only a space character.
      */
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return character == ' ';
     }
 
     /**
      * Resets the cell to its default state (space character and default colors).
      */
-    public void reset(){
+    public void reset() {
         character = ' ';
-        foregroundColor = Color.DEFAULT;
-        backgroundColor = Color.DEFAULT;
-        styleFlags.reset();
+        attributes.reset();
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Cell cell = (Cell) o;
-        return character == cell.character && foregroundColor == cell.foregroundColor &&
-                backgroundColor == cell.backgroundColor &&
-                styleFlags.equals(cell.styleFlags);
+        return character == cell.character && attributes.equals(cell.attributes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(character, foregroundColor, backgroundColor, styleFlags);
+        return Objects.hash(character, attributes);
     }
 
     @Override
     public String toString() {
         return "Cell{" +
                 "character=" + character +
-                ", foregroundColor=" + foregroundColor +
-                ", backgroundColor=" + backgroundColor +
-                "," + styleFlags.toString() +
+                ", " + attributes.toString() +
                 '}';
     }
 
@@ -103,41 +101,55 @@ public class Cell {
      * @return The foreground color of the cell.
      */
     public Color getForegroundColor() {
-        return foregroundColor;
+        return attributes.getForegroundColor();
     }
 
     /**
      * @param foregroundColor The foreground color to set.
      */
     public void setForegroundColor(Color foregroundColor) {
-        this.foregroundColor = foregroundColor;
+        attributes.setForegroundColor(foregroundColor);
     }
 
     /**
      * @return The background color of the cell.
      */
     public Color getBackgroundColor() {
-        return backgroundColor;
+        return attributes.getBackgroundColor();
     }
 
     /**
      * @param backgroundColor The background color to set.
      */
     public void setBackgroundColor(Color backgroundColor) {
-        this.backgroundColor = backgroundColor;
+        attributes.setBackgroundColor(backgroundColor);
     }
 
     /**
      * @return The style flags applied to the cell.
      */
-    public StyleFlags getStyleFlags() {
-        return styleFlags;
+    public StyleFlags getStyle() {
+        return attributes.getStyle();
     }
 
     /**
      * @param styleFlags The style flags to set.
      */
-    public void setStyleFlags(StyleFlags styleFlags) {
-        this.styleFlags = new StyleFlags(styleFlags);
+    public void setStyle(StyleFlags styleFlags) {
+        attributes.setStyle(styleFlags);
+    }
+
+    /**
+     * @return A copy of the cell attributes.
+     */
+    public CellAttributes getAttributes() {
+        return new CellAttributes(attributes);
+    }
+
+    /**
+     * @param attributes The cell attributes to set.
+     */
+    public void setAttributes(CellAttributes attributes) {
+        this.attributes = new CellAttributes(attributes);
     }
 }

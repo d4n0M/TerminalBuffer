@@ -12,9 +12,9 @@ public class CellTest {
         assertEquals(' ', cell.getCharacter());
         assertEquals(Color.DEFAULT, cell.getForegroundColor());
         assertEquals(Color.DEFAULT, cell.getBackgroundColor());
-        assertFalse(cell.getStyleFlags().getBold());
-        assertFalse(cell.getStyleFlags().getItalic());
-        assertFalse(cell.getStyleFlags().getUnderline());
+        assertFalse(cell.getStyle().getBold());
+        assertFalse(cell.getStyle().getItalic());
+        assertFalse(cell.getStyle().getUnderline());
     }
 
     @Test
@@ -24,7 +24,7 @@ public class CellTest {
         Cell copy = new Cell(original);
 
         // Mutate original after copy
-        original.getStyleFlags().reset();
+        original.getStyle().reset();
         original.setCharacter('B');
         original.setForegroundColor(Color.GREEN);
         original.setBackgroundColor(Color.CYAN);
@@ -33,9 +33,9 @@ public class CellTest {
         assertEquals('A', copy.getCharacter());
         assertEquals(Color.RED, copy.getForegroundColor());
         assertEquals(Color.BLUE, copy.getBackgroundColor());
-        assertTrue(copy.getStyleFlags().getBold());
-        assertFalse(copy.getStyleFlags().getItalic());
-        assertTrue(copy.getStyleFlags().getUnderline());
+        assertTrue(copy.getStyle().getBold());
+        assertFalse(copy.getStyle().getItalic());
+        assertTrue(copy.getStyle().getUnderline());
     }
 
     @Test
@@ -45,20 +45,20 @@ public class CellTest {
         assertEquals(' ', cell.getCharacter());
         assertEquals(Color.DEFAULT, cell.getForegroundColor());
         assertEquals(Color.DEFAULT, cell.getBackgroundColor());
-        assertFalse(cell.getStyleFlags().getBold());
-        assertFalse(cell.getStyleFlags().getItalic());
-        assertFalse(cell.getStyleFlags().getUnderline());
+        assertFalse(cell.getStyle().getBold());
+        assertFalse(cell.getStyle().getItalic());
+        assertFalse(cell.getStyle().getUnderline());
     }
 
     @Test
     void settersUseDefensiveCopyForStyleFlags() {
         Cell cell = new Cell();
         StyleFlags input = new StyleFlags(true, true, false);
-        cell.setStyleFlags(input);
+        cell.setStyle(input);
         // Mutate the source object; cell should not be affected because of defensive copy
         input.reset();
-        assertTrue(cell.getStyleFlags().getBold());
-        assertTrue(cell.getStyleFlags().getItalic());
-        assertFalse(cell.getStyleFlags().getUnderline());
+        assertTrue(cell.getStyle().getBold());
+        assertTrue(cell.getStyle().getItalic());
+        assertFalse(cell.getStyle().getUnderline());
     }
 }

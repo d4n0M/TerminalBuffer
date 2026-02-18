@@ -47,9 +47,9 @@ public class TerminalLineTest {
             assertEquals('A', c.getCharacter());
             assertEquals(Color.GREEN, c.getForegroundColor());
             assertEquals(Color.CYAN, c.getBackgroundColor());
-            assertFalse(c.getStyleFlags().getBold());
-            assertTrue(c.getStyleFlags().getItalic());
-            assertTrue(c.getStyleFlags().getUnderline());
+            assertFalse(c.getStyle().getBold());
+            assertTrue(c.getStyle().getItalic());
+            assertTrue(c.getStyle().getUnderline());
         }
     }
 
@@ -57,17 +57,17 @@ public class TerminalLineTest {
     void copyCreatesDeepCopy() {
         TerminalLine line = new TerminalLine(2);
         line.getCell(0).setCharacter('Q');
-        line.getCell(0).setStyleFlags(new StyleFlags(true, false, false));
+        line.getCell(0).setStyle(new StyleFlags(true, false, false));
 
         TerminalLine copy = line.copy();
 
         // Mutate original after copy
         line.getCell(0).setCharacter('W');
-        line.getCell(0).getStyleFlags().reset();
+        line.getCell(0).getStyle().reset();
 
         // Verify copy remains unchanged
         assertEquals('Q', copy.getCell(0).getCharacter());
-        assertTrue(copy.getCell(0).getStyleFlags().getBold());
+        assertTrue(copy.getCell(0).getStyle().getBold());
     }
 
     @Test
