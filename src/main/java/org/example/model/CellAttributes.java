@@ -8,7 +8,7 @@ public class CellAttributes {
     public CellAttributes(Color foregroundColor, Color backgroundColor, StyleFlags style){
         this.foregroundColor = foregroundColor;
         this.backgroundColor = backgroundColor;
-        this.style = style;
+        this.style = new StyleFlags(style);
     }
 
     public CellAttributes(){
@@ -16,7 +16,7 @@ public class CellAttributes {
     }
 
     public CellAttributes(CellAttributes attributes){
-        this(attributes.foregroundColor, attributes.backgroundColor, attributes.style);
+        this(attributes.foregroundColor, attributes.backgroundColor, new StyleFlags(attributes.style));
     }
 
     public void reset(){
@@ -28,7 +28,7 @@ public class CellAttributes {
     public void applyToCell(Cell cell){
         cell.setForegroundColor(foregroundColor);
         cell.setBackgroundColor(backgroundColor);
-        cell.setStyleFlags(style);
+        cell.setStyleFlags(new StyleFlags(style));
     }
 
     public Color getForegroundColor() {
@@ -52,6 +52,6 @@ public class CellAttributes {
     }
 
     public void setStyle(StyleFlags style) {
-        this.style = style;
+        this.style = new StyleFlags(style);
     }
 }

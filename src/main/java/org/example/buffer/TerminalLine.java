@@ -74,9 +74,11 @@ public class TerminalLine {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("TerminalLine{width=").append(width).append(", cells=[\n");
         for (Cell cell : cells) {
             sb.append(cell.getCharacter());
         }
+        sb.append("\n]}");
         return sb.toString();
     }
 
@@ -86,13 +88,14 @@ public class TerminalLine {
      */
     public String toStringWithAttributes() {
         StringBuilder sb = new StringBuilder();
-        for (Cell cell : cells) {
-            String tmp = "TerminalLine{" +
-                    "cells=" + cell.toString() +
-                    ", width=" + width +
-                    '}';
-            sb.append(tmp);
+        sb.append("TerminalLine{width=").append(width).append(", cells=[\n");
+        for (int i = 0; i < cells.size(); i++) {
+            sb.append(cells.get(i).toString());
+            if (i < cells.size() - 1) {
+                sb.append(", ");
+            }
         }
+        sb.append("\n]}");
         return sb.toString();
     }
 
@@ -118,7 +121,7 @@ public class TerminalLine {
      * @return The list of cells in the line.
      */
     public ArrayList<Cell> getCells() {
-        return cells;
+        return new ArrayList<>(cells);
     }
 
     /**
@@ -126,6 +129,7 @@ public class TerminalLine {
      */
     public void setCells(ArrayList<Cell> cells) {
         this.cells = cells;
+        this.width = cells.size();
     }
 
     /**
@@ -139,6 +143,14 @@ public class TerminalLine {
      * @param width The width to set.
      */
     public void setWidth(int width) {
+        if (width > this.cells.size()) {
+            this.cells.ensureCapacity(width);
+            while (this.cells.size() < width) {
+                this.cells.add(new Cell());
+            }
+        } else if (width < this.cells.size()) {
+            this.cells.subList(width, this.cells.size()).clear();
+        }
         this.width = width;
     }
 }

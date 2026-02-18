@@ -22,17 +22,17 @@ public class Cell {
      * @param backgroundColor The background color.
      * @param styleFlags The style flags.
      */
-    Cell(char character, Color foregroundColor, Color backgroundColor, StyleFlags styleFlags){
+    public Cell(char character, Color foregroundColor, Color backgroundColor, StyleFlags styleFlags){
         this.character = character;
         this.foregroundColor = foregroundColor;
         this.backgroundColor = backgroundColor;
-        this.styleFlags = styleFlags;
+        this.styleFlags = new StyleFlags(styleFlags);
     }
 
     /**
      * Creates a default empty cell with a space character and default colors.
      */
-    Cell(){
+    public Cell(){
         this(' ', Color.DEFAULT, Color.DEFAULT, new StyleFlags());
     }
 
@@ -40,7 +40,7 @@ public class Cell {
      * Creates a new cell by copying another cell.
      * @param cell The cell to copy.
      */
-    Cell(Cell cell){
+    public Cell(Cell cell){
         this(cell.character, cell.foregroundColor, cell.backgroundColor, cell.styleFlags);
     }
 
@@ -81,7 +81,7 @@ public class Cell {
                 "character=" + character +
                 ", foregroundColor=" + foregroundColor +
                 ", backgroundColor=" + backgroundColor +
-                ", styleFlags=" + styleFlags +
+                "," + styleFlags.toString() +
                 '}';
     }
 
@@ -138,6 +138,6 @@ public class Cell {
      * @param styleFlags The style flags to set.
      */
     public void setStyleFlags(StyleFlags styleFlags) {
-        this.styleFlags = styleFlags;
+        this.styleFlags = new StyleFlags(styleFlags);
     }
 }
