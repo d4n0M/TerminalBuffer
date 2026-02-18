@@ -1378,14 +1378,14 @@ public class TerminalBufferTest {
     }
 
     @Test
-    void clearScreen_doesNotMoveCursor() {
+    void clearScreen_resetsCursorToOrigin() {
         TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
         buffer.setCursorPosition(5, 3);
         
         buffer.clearScreen();
         
-        assertEquals(5, buffer.getCurrentCursorPosition().getColumn());
-        assertEquals(3, buffer.getCurrentCursorPosition().getRow());
+        assertEquals(0, buffer.getCurrentCursorPosition().getColumn());
+        assertEquals(0, buffer.getCurrentCursorPosition().getRow());
     }
 
     @Test
