@@ -84,6 +84,14 @@ public class StyleFlags{
     }
 
     /**
+     * Sets whether the text is bold.
+     * @param bold true if the text should be bold.
+     */
+    public void setBold(boolean bold) {
+        this.bold = bold;
+    }
+
+    /**
      * @return true if the text is italic.
      */
     public boolean getItalic() {
@@ -91,9 +99,25 @@ public class StyleFlags{
     }
 
     /**
+     * Sets whether the text is italic.
+     * @param italic true if the text should be italic.
+     */
+    public void setItalic(boolean italic) {
+        this.italic = italic;
+    }
+
+    /**
      * @return true if the text is underlined.
      */
     public boolean getUnderline() {
         return underline;
+    }
+
+    /**
+     * Sets whether the text is underlined.
+     * @param underline true if the text should be underlined.
+     */
+    public void setUnderline(boolean underline) {
+        this.underline = underline;
     }
 }
