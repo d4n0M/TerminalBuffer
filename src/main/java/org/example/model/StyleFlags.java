@@ -1,5 +1,7 @@
 package org.example.model;
 
+import java.util.Objects;
+
 /**
  * Represents style attributes for a terminal cell, such as bold, italic, and underline.
  */
@@ -62,9 +64,7 @@ public class StyleFlags{
 
     @Override
     public int hashCode() {
-        return Boolean.hashCode(bold) *
-            31 + Boolean.hashCode(italic) *
-            31 + Boolean.hashCode(underline);
+        return Objects.hash(bold, italic, underline);
     }
 
     /**
