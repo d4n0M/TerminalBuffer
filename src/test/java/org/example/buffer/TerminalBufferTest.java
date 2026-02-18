@@ -179,4 +179,208 @@ public class TerminalBufferTest {
         assertNotSame(buffer1.getCurrentAttributes(), buffer2.getCurrentAttributes(),
                 "Each buffer should have its own CellAttributes instance");
     }
+
+    // ==================== setForegroundColor Tests ====================
+
+    @Test
+    void setForegroundColor_changesCurrentAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setForegroundColor(Color.RED);
+        assertEquals(Color.RED, buffer.getCurrentAttributes().getForegroundColor());
+    }
+
+    @Test
+    void setForegroundColor_nullThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.setForegroundColor(null));
+    }
+
+    @Test
+    void setForegroundColor_doesNotAffectBackgroundColor() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setForegroundColor(Color.RED);
+        assertEquals(Color.DEFAULT, buffer.getCurrentAttributes().getBackgroundColor());
+    }
+
+    // ==================== setBackgroundColor Tests ====================
+
+    @Test
+    void setBackgroundColor_changesCurrentAttributes() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setBackgroundColor(Color.BLUE);
+        assertEquals(Color.BLUE, buffer.getCurrentAttributes().getBackgroundColor());
+    }
+
+    @Test
+    void setBackgroundColor_nullThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.setBackgroundColor(null));
+    }
+
+    @Test
+    void setBackgroundColor_doesNotAffectForegroundColor() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setBackgroundColor(Color.BLUE);
+        assertEquals(Color.DEFAULT, buffer.getCurrentAttributes().getForegroundColor());
+    }
+
+    // ==================== setBold Tests ====================
+
+    @Test
+    void setBold_enablesBoldFlag() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setBold(true);
+        assertTrue(buffer.getCurrentAttributes().getStyle().getBold());
+    }
+
+    @Test
+    void setBold_disablesBoldFlag() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setBold(true);
+        buffer.setBold(false);
+        assertFalse(buffer.getCurrentAttributes().getStyle().getBold());
+    }
+
+    @Test
+    void setBold_doesNotAffectOtherFlags() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setBold(true);
+        assertFalse(buffer.getCurrentAttributes().getStyle().getItalic());
+        assertFalse(buffer.getCurrentAttributes().getStyle().getUnderline());
+    }
+
+    // ==================== setItalic Tests ====================
+
+    @Test
+    void setItalic_enablesItalicFlag() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setItalic(true);
+        assertTrue(buffer.getCurrentAttributes().getStyle().getItalic());
+    }
+
+    @Test
+    void setItalic_disablesItalicFlag() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setItalic(true);
+        buffer.setItalic(false);
+        assertFalse(buffer.getCurrentAttributes().getStyle().getItalic());
+    }
+
+    @Test
+    void setItalic_doesNotAffectOtherFlags() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setItalic(true);
+        assertFalse(buffer.getCurrentAttributes().getStyle().getBold());
+        assertFalse(buffer.getCurrentAttributes().getStyle().getUnderline());
+    }
+
+    // ==================== setUnderline Tests ====================
+
+    @Test
+    void setUnderline_enablesUnderlineFlag() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setUnderline(true);
+        assertTrue(buffer.getCurrentAttributes().getStyle().getUnderline());
+    }
+
+    @Test
+    void setUnderline_disablesUnderlineFlag() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setUnderline(true);
+        buffer.setUnderline(false);
+        assertFalse(buffer.getCurrentAttributes().getStyle().getUnderline());
+    }
+
+    @Test
+    void setUnderline_doesNotAffectOtherFlags() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setUnderline(true);
+        assertFalse(buffer.getCurrentAttributes().getStyle().getBold());
+        assertFalse(buffer.getCurrentAttributes().getStyle().getItalic());
+    }
+
+    // ==================== setAttributes Tests ====================
+
+    @Test
+    void setAttributes_setsAllAttributesAtOnce() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        CellAttributes attrs = new CellAttributes();
+        attrs.setForegroundColor(Color.GREEN);
+        attrs.setBackgroundColor(Color.YELLOW);
+        attrs.getStyle().setBold(true);
+        attrs.getStyle().setItalic(true);
+        
+        buffer.setAttributes(attrs);
+        
+        CellAttributes result = buffer.getCurrentAttributes();
+        assertEquals(Color.GREEN, result.getForegroundColor());
+        assertEquals(Color.YELLOW, result.getBackgroundColor());
+        assertTrue(result.getStyle().getBold());
+        assertTrue(result.getStyle().getItalic());
+    }
+
+    @Test
+    void setAttributes_nullThrowsException() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertThrows(IllegalArgumentException.class, () -> buffer.setAttributes(null));
+    }
+
+    @Test
+    void setAttributes_createsDefensiveCopy() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        CellAttributes attrs = new CellAttributes();
+        attrs.setForegroundColor(Color.RED);
+        buffer.setAttributes(attrs);
+        
+        attrs.setForegroundColor(Color.BLUE);
+        assertEquals(Color.RED, buffer.getCurrentAttributes().getForegroundColor());
+    }
+
+    // ==================== getCurrentAttributes Tests ====================
+
+    @Test
+    void getCurrentAttributes_returnsDefensiveCopy() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        CellAttributes attrs1 = buffer.getCurrentAttributes();
+        CellAttributes attrs2 = buffer.getCurrentAttributes();
+        assertNotSame(attrs1, attrs2);
+    }
+
+    @Test
+    void getCurrentAttributes_modifyingCopyDoesNotAffectBuffer() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        CellAttributes attrs = buffer.getCurrentAttributes();
+        attrs.setForegroundColor(Color.RED);
+        assertEquals(Color.DEFAULT, buffer.getCurrentAttributes().getForegroundColor());
+    }
+
+    // ==================== resetAttributes Tests ====================
+
+    @Test
+    void resetAttributes_resetsToDefaults() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setForegroundColor(Color.RED);
+        buffer.setBackgroundColor(Color.BLUE);
+        buffer.setBold(true);
+        buffer.setItalic(true);
+        buffer.setUnderline(true);
+        
+        buffer.resetAttributes();
+        
+        CellAttributes attrs = buffer.getCurrentAttributes();
+        assertEquals(Color.DEFAULT, attrs.getForegroundColor());
+        assertEquals(Color.DEFAULT, attrs.getBackgroundColor());
+        assertFalse(attrs.getStyle().getBold());
+        assertFalse(attrs.getStyle().getItalic());
+        assertFalse(attrs.getStyle().getUnderline());
+    }
+
+    @Test
+    void resetAttributes_canSetAttributesAfterReset() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.setForegroundColor(Color.RED);
+        buffer.resetAttributes();
+        buffer.setForegroundColor(Color.GREEN);
+        assertEquals(Color.GREEN, buffer.getCurrentAttributes().getForegroundColor());
+    }
 }
