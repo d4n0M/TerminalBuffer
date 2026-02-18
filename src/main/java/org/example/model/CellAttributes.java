@@ -28,7 +28,7 @@ public class CellAttributes {
     public void applyToCell(Cell cell){
         cell.setForegroundColor(foregroundColor);
         cell.setBackgroundColor(backgroundColor);
-        cell.setAttributes(new CellAttributes(Color.DEFAULT, Color.DEFAULT, new StyleFlags(style)));
+        cell.setStyle(new StyleFlags(style));
     }
 
     public Color getForegroundColor() {
