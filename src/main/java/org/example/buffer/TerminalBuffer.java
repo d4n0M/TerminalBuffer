@@ -61,6 +61,10 @@ public class TerminalBuffer {
         return cursor;
     }
 
+    public void applyToCurrentCell(CellAttributes attrs){
+        screen.get(cursor.getRow()).getCell(cursor.getColumn()).setAttributes(attrs);
+    }
+
     /**
      * Gets a copy of the current attributes.
      * @return a defensive copy of the current cell attributes
@@ -259,6 +263,10 @@ public class TerminalBuffer {
      * @param text the text to insert
      */
     public void insertText(String text) {
+        if (text == null) {
+            throw new IllegalArgumentException("Text cannot be null");
+        }
+
         for (char c : text.toCharArray()) {
             TerminalLine line = getCurrentLine();
             insertAndShift(line, c);
@@ -266,6 +274,10 @@ public class TerminalBuffer {
     }
 
     public void writeText(String text){
+        if (text == null) {
+            throw new IllegalArgumentException("Text cannot be null");
+        }
+
         TerminalLine line = getCurrentLine();
         boolean breakAtEnd = false;
         for(char c : text.toCharArray()){
@@ -279,5 +291,25 @@ public class TerminalBuffer {
         }
     }
 
+    public void fillLine(char c){
+        TerminalLine line = getCurrentLine();
+        for(Cell cell : line.getCells()){
+            cell.setCharacter(c);
+        }
+    }
+
+    //user is responsible for index checking
+    public void fillLine(char c, int from, int to){
+
+        if(!(from >= 0 && from <= to && from < width && to < width)){
+            throw new IllegalArgumentException("Invalid bounds.");
+        }
+
+        TerminalLine line = getCurrentLine();
+        for(int i = from; i <= to; i++){
+            Cell cell = line.getCell(i);
+            cell.setCharacter(c);
+        }
+    }
 }
 
