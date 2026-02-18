@@ -52,6 +52,6 @@ public class CellAttributes {
     }
 
     public void setStyle(StyleFlags style) {
-        this.style = style;
+        this.style = new StyleFlags(style);
     }
 }
