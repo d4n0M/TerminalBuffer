@@ -12,7 +12,6 @@ public class TerminalBuffer {
     private ArrayList<TerminalLine> screen;
     private LinkedList<TerminalLine> scrollback;
     CursorPosition cursor;
-    CellAttributes currentAttributes;
 
     public TerminalBuffer(int width, int height, int maxScrollbackLines) {
         this.width = width;
@@ -24,7 +23,6 @@ public class TerminalBuffer {
         
         this.scrollback = new LinkedList<>();
         this.cursor = new CursorPosition(0, 0);
-        this.currentAttributes = new CellAttributes();
     }
 
     private void initializeScreen() {
@@ -35,6 +33,10 @@ public class TerminalBuffer {
 
     private TerminalLine createEmptyLine() {
         return new TerminalLine(width);
+    }
+
+    public CellAttributes getCurrentAttributes(){
+        return screen.get(cursor.getRow()).getCell(cursor.getColumn()).getAttributes();
     }
 
     public int getWidth() {
@@ -66,14 +68,6 @@ public class TerminalBuffer {
     }
 
     /**
-     * Gets a copy of the current attributes.
-     * @return a defensive copy of the current cell attributes
-     */
-    public CellAttributes getCurrentAttributes() {
-        return new CellAttributes(currentAttributes);
-    }
-
-    /**
      * Sets the foreground color for future writes.
      * @param color the foreground color to set
      * @throws IllegalArgumentException if color is null
@@ -82,7 +76,8 @@ public class TerminalBuffer {
         if (color == null) {
             throw new IllegalArgumentException("Color cannot be null");
         }
-        currentAttributes.setForegroundColor(color);
+
+        getCurrentAttributes().setForegroundColor(color);
     }
 
     /**
@@ -94,7 +89,7 @@ public class TerminalBuffer {
         if (color == null) {
             throw new IllegalArgumentException("Color cannot be null");
         }
-        currentAttributes.setBackgroundColor(color);
+        getCurrentAttributes().setBackgroundColor(color);
     }
 
     /**
@@ -102,7 +97,7 @@ public class TerminalBuffer {
      * @param bold true to enable bold, false to disable
      */
     public void setBold(boolean bold) {
-        currentAttributes.getStyle().setBold(bold);
+        getCurrentAttributes().getStyle().setBold(bold);
     }
 
     /**
@@ -110,7 +105,7 @@ public class TerminalBuffer {
      * @param italic true to enable italic, false to disable
      */
     public void setItalic(boolean italic) {
-        currentAttributes.getStyle().setItalic(italic);
+        getCurrentAttributes().getStyle().setItalic(italic);
     }
 
     /**
@@ -118,7 +113,7 @@ public class TerminalBuffer {
      * @param underline true to enable underline, false to disable
      */
     public void setUnderline(boolean underline) {
-        currentAttributes.getStyle().setUnderline(underline);
+        getCurrentAttributes().getStyle().setUnderline(underline);
     }
 
     /**
@@ -130,16 +125,16 @@ public class TerminalBuffer {
         if (attrs == null) {
             throw new IllegalArgumentException("Attributes cannot be null");
         }
-        currentAttributes.setForegroundColor(attrs.getForegroundColor());
-        currentAttributes.setBackgroundColor(attrs.getBackgroundColor());
-        currentAttributes.setStyle(new StyleFlags(attrs.getStyle()));
+        setForegroundColor(attrs.getForegroundColor());
+        setBackgroundColor(attrs.getBackgroundColor());
+        getCurrentAttributes().setStyle(new StyleFlags(attrs.getStyle()));
     }
 
     /**
      * Resets attributes to defaults.
      */
     public void resetAttributes() {
-        currentAttributes.reset();
+        getCurrentAttributes().reset();
     }
 
     private void clampCursorToBounds(){
@@ -230,13 +225,14 @@ public class TerminalBuffer {
             // Save current state
             int originalCol = cursor.getColumn();
             int originalRow = cursor.getRow();
-            CellAttributes originalAttrs = new CellAttributes(currentAttributes);
+            CellAttributes originalAttrs = new CellAttributes(getCurrentAttributes());
 
             // Set cursor to the beginning of the next line
             cursor.setColumn(0);
             cursor.setRow(row + 1);
 
             // Set attributes to match the overflow cell (to preserve its formatting)
+            CellAttributes currentAttributes = getCurrentAttributes();
             currentAttributes.setForegroundColor(overflowCell.getForegroundColor());
             currentAttributes.setBackgroundColor(overflowCell.getBackgroundColor());
             currentAttributes.setStyle(overflowCell.getStyle());
