@@ -307,5 +307,37 @@ public class TerminalBuffer {
             cell.setCharacter(c);
         }
     }
+
+    private void scrollLineToScrollback(TerminalLine line) {
+        scrollback.add(line);
+        trimScrollback();
+    }
+
+    private void trimScrollback() {
+        while (scrollback.size() > maxScrollbackLines) {
+            scrollback.removeFirst();
+        }
+    }
+
+    public void insertEmptyLineAtBottom() {
+        if (screen.size() >= height) {
+            scrollLineToScrollback(screen.removeFirst());
+        }
+        screen.add(createEmptyLine());
+    }
+
+    public void clearScreen() {
+        for (TerminalLine line : screen) {
+            for (int i = 0; i < width; i++) {
+                Cell cell = line.getCell(i);
+                cell.setCharacter(' ');
+            }
+        }
+    }
+
+    public void clearScreenAndScrollback() {
+        clearScreen();
+        scrollback.clear();
+    }
 }
 
