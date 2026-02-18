@@ -1,19 +1,19 @@
 package org.example.buffer;
 
 import org.example.model.CellAttributes;
+import org.example.model.Color;
 import org.example.model.CursorPosition;
+import org.example.model.StyleFlags;
 
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 
 public class TerminalBuffer {
     private int width;
     private int height;
     private int maxScrollbackLines;
-    private List<TerminalLine> screen;
-    private Deque<TerminalLine> scrollback;
+    private ArrayList<TerminalLine> screen;
+    private LinkedList<TerminalLine> scrollback;
     CursorPosition cursor;
     CellAttributes currentAttributes;
 
@@ -52,11 +52,11 @@ public class TerminalBuffer {
         return maxScrollbackLines;
     }
 
-    public List<TerminalLine> getScreen() {
+    public ArrayList<TerminalLine> getScreen() {
         return screen;
     }
 
-    public Deque<TerminalLine> getScrollback() {
+    public LinkedList<TerminalLine> getScrollback() {
         return scrollback;
     }
 
@@ -64,7 +64,80 @@ public class TerminalBuffer {
         return cursor;
     }
 
+    /**
+     * Gets a copy of the current attributes.
+     * @return a defensive copy of the current cell attributes
+     */
     public CellAttributes getCurrentAttributes() {
-        return currentAttributes;
+        return new CellAttributes(currentAttributes);
+    }
+
+    /**
+     * Sets the foreground color for future writes.
+     * @param color the foreground color to set
+     * @throws IllegalArgumentException if color is null
+     */
+    public void setForegroundColor(Color color) {
+        if (color == null) {
+            throw new IllegalArgumentException("Color cannot be null");
+        }
+        currentAttributes.setForegroundColor(color);
+    }
+
+    /**
+     * Sets the background color for future writes.
+     * @param color the background color to set
+     * @throws IllegalArgumentException if color is null
+     */
+    public void setBackgroundColor(Color color) {
+        if (color == null) {
+            throw new IllegalArgumentException("Color cannot be null");
+        }
+        currentAttributes.setBackgroundColor(color);
+    }
+
+    /**
+     * Sets the bold flag for future writes.
+     * @param bold true to enable bold, false to disable
+     */
+    public void setBold(boolean bold) {
+        currentAttributes.getStyle().setBold(bold);
+    }
+
+    /**
+     * Sets the italic flag for future writes.
+     * @param italic true to enable italic, false to disable
+     */
+    public void setItalic(boolean italic) {
+        currentAttributes.getStyle().setItalic(italic);
+    }
+
+    /**
+     * Sets the underline flag for future writes.
+     * @param underline true to enable underline, false to disable
+     */
+    public void setUnderline(boolean underline) {
+        currentAttributes.getStyle().setUnderline(underline);
+    }
+
+    /**
+     * Sets all attributes at once.
+     * @param attrs the attributes to set
+     * @throws IllegalArgumentException if attrs is null
+     */
+    public void setAttributes(CellAttributes attrs) {
+        if (attrs == null) {
+            throw new IllegalArgumentException("Attributes cannot be null");
+        }
+        currentAttributes.setForegroundColor(attrs.getForegroundColor());
+        currentAttributes.setBackgroundColor(attrs.getBackgroundColor());
+        currentAttributes.setStyle(new StyleFlags(attrs.getStyle()));
+    }
+
+    /**
+     * Resets attributes to defaults.
+     */
+    public void resetAttributes() {
+        currentAttributes.reset();
     }
 }
