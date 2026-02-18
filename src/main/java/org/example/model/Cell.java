@@ -143,13 +143,13 @@ public class Cell {
      * @return A copy of the cell attributes.
      */
     public CellAttributes getAttributes() {
-        return new CellAttributes(attributes);
+        return attributes;
     }
 
     /**
      * @param attributes The cell attributes to set.
      */
     public void setAttributes(CellAttributes attributes) {
-        this.attributes = new CellAttributes(attributes);
+        this.attributes = attributes;
     }
 }
