@@ -81,7 +81,7 @@ public class Cell {
                 "character=" + character +
                 ", foregroundColor=" + foregroundColor +
                 ", backgroundColor=" + backgroundColor +
-                ", styleFlags=" + styleFlags +
+                "," + styleFlags.toString() +
                 '}';
     }
 

@@ -67,6 +67,15 @@ public class StyleFlags{
         return Objects.hash(bold, italic, underline);
     }
 
+    @Override
+    public String toString() {
+        return "StyleFlags{" +
+                "bold=" + bold +
+                ", italic=" + italic +
+                ", underline=" + underline +
+                '}';
+    }
+
     /**
      * @return true if the text is bold.
      */
