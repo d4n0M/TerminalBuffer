@@ -140,4 +140,55 @@ public class TerminalBuffer {
     public void resetAttributes() {
         currentAttributes.reset();
     }
+
+    private void clampCursorToBounds(){
+        if (cursor.getRow() < 0)  {
+            cursor.setRow(0);
+        }else if (cursor.getRow() >= height-1) {
+            cursor.setRow(height-1);
+        }
+        if (cursor.getColumn() < 0)  {
+            cursor.setColumn(0);
+        }else if (cursor.getColumn() >= width-1) {
+            cursor.setColumn(width-1);
+        }
+    }
+
+    private boolean validatePosition(int column, int row){
+        return row >= 0 && row < height && column >= 0 && column < width;
+    }
+
+    public CursorPosition getCurrentCursorPosition(){
+        return new CursorPosition(cursor.getColumn(), cursor.getRow());
+    }
+
+    public void setCursorPosition(int  column, int row){
+        if (validatePosition(column, row)){
+            cursor.setColumn(column);
+            cursor.setRow(row);
+            return;
+        }
+        throw new IllegalArgumentException("Invalid cursor position");
+    }
+
+    public void moveCursorUp(int n){
+        cursor.setRow(cursor.getRow() - n);
+        clampCursorToBounds();
+    }
+
+    public void moveCursorDown(int n){
+        cursor.setRow(cursor.getRow() + n);
+        clampCursorToBounds();
+    }
+
+    public void moveCursorLeft(int n){
+        cursor.setColumn(cursor.getColumn() - n);
+        clampCursorToBounds();
+    }
+
+    public void moveCursorRight(int n){
+        cursor.setColumn(cursor.getColumn() + n);
+        clampCursorToBounds();
+    }
+
 }
