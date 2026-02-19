@@ -333,6 +333,9 @@ public class TerminalBuffer {
                 cell.setCharacter(' ');
             }
         }
+
+        cursor.setColumn(0);
+        cursor.setRow(0);
     }
 
     public void clearScreenAndScrollback() {
