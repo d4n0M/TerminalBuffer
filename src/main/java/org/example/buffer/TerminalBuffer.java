@@ -4,6 +4,7 @@ import org.example.model.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 public class TerminalBuffer {
     private int width;
@@ -264,6 +265,10 @@ public class TerminalBuffer {
         }
 
         for (char c : text.toCharArray()) {
+            if (c == '\n') {
+                newline();
+                continue;
+            }
             TerminalLine line = getCurrentLine();
             insertAndShift(line, c);
         }
@@ -274,17 +279,30 @@ public class TerminalBuffer {
             throw new IllegalArgumentException("Text cannot be null");
         }
 
-        TerminalLine line = getCurrentLine();
-        boolean breakAtEnd = false;
         for(char c : text.toCharArray()){
-            if(cursor.getColumn() == width-1){
-                breakAtEnd = true;
+            if (c == '\n') {
+                newline();
+                continue;
             }
+            
+            if (cursor.getColumn() >= width) break;
+            
+            TerminalLine line = getCurrentLine();
+            boolean isLast = (cursor.getColumn() == width - 1);
             Cell cell = line.getCell(cursor.getColumn());
             cell.setCharacter(c);
             moveCursorRight(1);
-            if(breakAtEnd){ break; }
+            if (isLast) break;
         }
+    }
+
+    private void newline() {
+        if (cursor.getRow() < height - 1) {
+            cursor.setRow(cursor.getRow() + 1);
+        } else {
+            insertEmptyLineAtBottom();
+        }
+        cursor.setColumn(0);
     }
 
     public void fillLine(char c){
@@ -341,6 +359,90 @@ public class TerminalBuffer {
     public void clearScreenAndScrollback() {
         clearScreen();
         scrollback.clear();
+    }
+
+    public char getCharAt(int column, int row) {
+        return getCharAt(column, row, false);
+    }
+
+    public char getCharAt(int column, int row, boolean includeScrollback) {
+        TerminalLine line = getTerminalLine(row, includeScrollback);
+        return line.getCell(column).getCharacter();
+    }
+
+    public CellAttributes getAttributesAt(int column, int row) {
+        return getAttributesAt(column, row, false);
+    }
+
+    public CellAttributes getAttributesAt(int column, int row, boolean includeScrollback) {
+        TerminalLine line = getTerminalLine(row, includeScrollback);
+        return line.getCell(column).getAttributes();
+    }
+
+    public String getLine(int row) {
+        return getLine(row, false);
+    }
+
+    public String getLine(int row, boolean includeScrollback) {
+        TerminalLine line = getTerminalLine(row, includeScrollback);
+        StringBuilder sb = new StringBuilder();
+        for (Cell cell : line.getCells()) {
+            sb.append(cell.getCharacter());
+        }
+        return sb.toString();
+    }
+
+    public String getScreenContent() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < screen.size(); i++) {
+            sb.append(getLine(i, false));
+            if (i < screen.size() - 1) {
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public String getAllContent() {
+        List<String> allLines = getAllLines();
+        return String.join("\n", allLines);
+    }
+
+    public List<String> getScreenLines() {
+        List<String> lines = new ArrayList<>();
+        for (int i = 0; i < screen.size(); i++) {
+            lines.add(getLine(i, false));
+        }
+        return lines;
+    }
+
+    public List<String> getAllLines() {
+        List<String> lines = new ArrayList<>();
+        int totalRows = scrollback.size() + screen.size();
+        for (int i = 0; i < totalRows; i++) {
+            lines.add(getLine(i, true));
+        }
+        return lines;
+    }
+
+    private TerminalLine getTerminalLine(int row, boolean includeScrollback) {
+        if (includeScrollback) {
+            int scrollbackSize = scrollback.size();
+            if (row < scrollbackSize) {
+                if (row < 0) throw new IndexOutOfBoundsException("Row index out of bounds: " + row);
+                return scrollback.get(row);
+            } else {
+                int screenRow = row - scrollbackSize;
+                if (screenRow < screen.size()) {
+                    return screen.get(screenRow);
+                }
+            }
+        } else {
+            if (row >= 0 && row < screen.size()) {
+                return screen.get(row);
+            }
+        }
+        throw new IndexOutOfBoundsException("Row index out of bounds: " + row);
     }
 }
 
