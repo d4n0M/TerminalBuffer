@@ -1402,4 +1402,121 @@ public class TerminalBufferTest {
         assertEquals(' ', buffer.getScreen().get(1).getCell(0).getCharacter());
         assertEquals(' ', buffer.getScreen().get(3).getCell(5).getCharacter());
     }
+
+    // ==================== Content Retrieval Tests ====================
+
+    @Test
+    void getCharAt_fromScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(2, 1);
+        buffer.writeText("X");
+        
+        assertEquals('X', buffer.getCharAt(2, 1));
+        assertEquals(' ', buffer.getCharAt(0, 0));
+    }
+
+    @Test
+    void getCharAt_withIncludeScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.writeText("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6");
+        
+        // "Line 1" should be in scrollback
+        assertEquals('L', buffer.getCharAt(0, 0, true));
+        assertEquals('1', buffer.getCharAt(5, 0, true));
+        
+        // "Line 6" should be on screen (row 0 of screen, which is row 5 including scrollback)
+        assertEquals('L', buffer.getCharAt(0, 5, true));
+        
+        // Without scrollback, index 0 is "Line 2"
+        assertEquals('L', buffer.getCharAt(0, 0, false));
+    }
+
+    @Test
+    void getAttributesAt_fromScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.setForegroundColor(Color.RED);
+        buffer.writeText("R");
+        
+        CellAttributes attrs = buffer.getAttributesAt(0, 0);
+        assertEquals(Color.RED, attrs.getForegroundColor());
+    }
+
+    @Test
+    void getAttributesAt_withIncludeScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setForegroundColor(Color.BLUE);
+        buffer.writeText("B\n");
+        for(int i=0; i<5; i++) buffer.writeText("\n");
+        
+        // 'B' is now in scrollback
+        CellAttributes attrs = buffer.getAttributesAt(0, 0, true);
+        assertEquals(Color.BLUE, attrs.getForegroundColor());
+    }
+
+    @Test
+    void getLine_fromScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 100);
+        buffer.setCursorPosition(0, 0);
+        buffer.writeText("Hello");
+        
+        String line = buffer.getLine(0);
+        assertTrue(line.startsWith("Hello"));
+        assertEquals(10, line.length());
+    }
+
+    @Test
+    void getLine_withIncludeScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 2, 100);
+        buffer.writeText("Line1\nLine2\nLine3");
+        
+        // Line1 and Line2 in scrollback, Line3 on screen
+        assertEquals("Line1     ", buffer.getLine(0, true));
+        assertEquals("Line2     ", buffer.getLine(1, true));
+        assertEquals("Line3     ", buffer.getLine(2, true));
+    }
+
+    @Test
+    void getScreenContent_returnsAllVisibleLines() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 3, 100);
+        buffer.writeText("A\nB\nC");
+        
+        String content = buffer.getScreenContent();
+        String expected = "A    \nB    \nC    ";
+        assertEquals(expected, content);
+    }
+
+    @Test
+    void getAllContent_includesScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 100);
+        buffer.writeText("1\n2\n3");
+        
+        // "1" in scrollback, "2" and "3" on screen
+        String content = buffer.getAllContent();
+        String expected = "1    \n2    \n3    ";
+        assertEquals(expected, content);
+    }
+
+    @Test
+    void getScreenLines_returnsListOfStrings() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 100);
+        buffer.writeText("A\nB");
+        
+        java.util.List<String> lines = buffer.getScreenLines();
+        assertEquals(2, lines.size());
+        assertEquals("A    ", lines.get(0));
+        assertEquals("B    ", lines.get(1));
+    }
+
+    @Test
+    void getAllLines_returnsListOfAllStrings() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 100);
+        buffer.writeText("1\n2\n3");
+        
+        java.util.List<String> lines = buffer.getAllLines();
+        assertEquals(3, lines.size());
+        assertEquals("1    ", lines.get(0));
+        assertEquals("2    ", lines.get(1));
+        assertEquals("3    ", lines.get(2));
+    }
 }
