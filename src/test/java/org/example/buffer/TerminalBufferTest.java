@@ -1519,4 +1519,111 @@ public class TerminalBufferTest {
         assertEquals("2    ", lines.get(1));
         assertEquals("3    ", lines.get(2));
     }
+
+    // ==================== New Method Tests ====================
+
+    @Test
+    void getScrollbackSize_initialSizeIsZero() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        assertEquals(0, buffer.getScrollbackSize());
+    }
+
+    @Test
+    void getScrollbackSize_increasesWhenScrolling() {
+        TerminalBuffer buffer = new TerminalBuffer(80, 24, 100);
+        buffer.insertEmptyLineAtBottom();
+        assertEquals(1, buffer.getScrollbackSize());
+        buffer.insertEmptyLineAtBottom();
+        assertEquals(2, buffer.getScrollbackSize());
+    }
+
+    @Test
+    void resize_widthIncrease_padsLines() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 10);
+        buffer.writeText("12345");
+        buffer.resize(20, 5);
+        
+        assertEquals(20, buffer.getWidth());
+        assertEquals(5, buffer.getHeight());
+        assertEquals("12345               ", buffer.getLine(0));
+        for (TerminalLine line : buffer.getScreen()) {
+            assertEquals(20, line.getWidth());
+        }
+    }
+
+    @Test
+    void resize_widthDecrease_truncatesLines() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 10);
+        buffer.writeText("1234567890");
+        buffer.resize(5, 5);
+        
+        assertEquals(5, buffer.getWidth());
+        assertEquals(5, buffer.getHeight());
+        assertEquals("12345", buffer.getLine(0));
+        for (TerminalLine line : buffer.getScreen()) {
+            assertEquals(5, line.getWidth());
+        }
+    }
+
+    @Test
+    void resize_heightIncrease_addsEmptyLines() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 10);
+        buffer.writeText("FirstLine");
+        buffer.resize(10, 10);
+        
+        assertEquals(10, buffer.getWidth());
+        assertEquals(10, buffer.getHeight());
+        assertEquals(10, buffer.getScreen().size());
+        assertEquals("FirstLine ", buffer.getLine(0));
+        assertEquals("          ", buffer.getLine(9));
+    }
+
+    @Test
+    void resize_heightDecrease_movesLinesToScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 5, 10);
+        buffer.writeText("Row0");
+        buffer.setCursorPosition(0, 1);
+        buffer.writeText("Row1");
+        buffer.setCursorPosition(0, 2);
+        buffer.writeText("Row2");
+        buffer.setCursorPosition(0, 3);
+        buffer.writeText("Row3");
+        buffer.setCursorPosition(0, 4);
+        buffer.writeText("Row4");
+        
+        buffer.resize(10, 2);
+        
+        assertEquals(2, buffer.getHeight());
+        assertEquals(2, buffer.getScreen().size());
+        assertEquals(3, buffer.getScrollbackSize());
+        
+        // The top 3 rows (Row0, Row1, Row2) should have been moved to scrollback
+        assertEquals("Row0      ", buffer.getLine(0, true));
+        assertEquals("Row1      ", buffer.getLine(1, true));
+        assertEquals("Row2      ", buffer.getLine(2, true));
+        
+        // New screen should start with what was Row3 and Row4
+        assertEquals("Row3      ", buffer.getLine(0, false));
+        assertEquals("Row4      ", buffer.getLine(1, false));
+    }
+
+    @Test
+    void resize_clampsCursorPosition() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 10, 10);
+        buffer.setCursorPosition(9, 9);
+        
+        buffer.resize(5, 5);
+        
+        assertEquals(4, buffer.getCursor().getColumn());
+        assertEquals(4, buffer.getCursor().getRow());
+    }
+
+    @Test
+    void resize_withZeroOrNegative_throwsException() {
+        TerminalBuffer buffer = new TerminalBuffer(10, 10, 10);
+        assertThrows(IllegalArgumentException.class, () -> buffer.resize(0, 10));
+        assertThrows(IllegalArgumentException.class, () -> buffer.resize(10, 0));
+        assertThrows(IllegalArgumentException.class, () -> buffer.resize(-1, 10));
+        assertThrows(IllegalArgumentException.class, () -> buffer.resize(10, -1));
+    }
 }
