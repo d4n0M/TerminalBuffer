@@ -444,5 +444,45 @@ public class TerminalBuffer {
         }
         throw new IndexOutOfBoundsException("Row index out of bounds: " + row);
     }
+
+    public int getScrollbackSize() {
+        return scrollback.size();
+    }
+
+    public void resize(int newWidth, int newHeight) {
+        if (newWidth <= 0 || newHeight <= 0) {
+            throw new IllegalArgumentException("Width and height must be positive.");
+        }
+
+        // 1. Update width of all lines
+        for (TerminalLine line : screen) {
+            line.setWidth(newWidth);
+        }
+        for (TerminalLine line : scrollback) {
+            line.setWidth(newWidth);
+        }
+
+        int oldHeight = this.height;
+        this.width = newWidth;
+        this.height = newHeight;
+
+        // 2. Adjust height
+        if (newHeight < oldHeight) {
+            // Shrinking: move top lines to scrollback
+            int linesToMove = oldHeight - newHeight;
+            for (int i = 0; i < linesToMove; i++) {
+                scrollLineToScrollback(screen.removeFirst());
+            }
+        } else if (newHeight > oldHeight) {
+            // Expanding: add empty lines at the bottom
+            int linesToAdd = newHeight - oldHeight;
+            for (int i = 0; i < linesToAdd; i++) {
+                screen.add(createEmptyLine());
+            }
+        }
+
+        // 3. Clamp cursor to new bounds
+        clampCursorToBounds();
+    }
 }
 
